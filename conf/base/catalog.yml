@@ -5,3 +5,13 @@
 tickets_2022:
   type: pandas.CSVDataSet
   filepath: data/01_raw/2022/tickets.csv
+contents_2022:
+  type: pandas.CSVDataSet
+  filepath: data/01_raw/2022/contents.csv
+merged_2022:
+  type: pandas.CSVDataSet
+  filepath: data/02_intermediate/merged_2022.csv
+  save_args:
+    index: False
+    encoding: "utf-8"
+    header: True
