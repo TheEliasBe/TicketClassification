@@ -12,7 +12,8 @@ from .nodes import (
     porter_stemmer,
     filter_first_message_per_ticket,
     translate_to_english,
-    stop_word_removal
+    stop_word_removal,
+    anonymize_email
 )
 
 
@@ -43,9 +44,13 @@ def create_pipeline(**kwargs) -> Pipeline:
                 outputs="clean_df",
                 name="drop_whitespace_rows",
             ),
+            node(func=anonymize_email,
+                 inputs="clean_df",
+                 outputs="preprocessed_2022",
+                 name="anon_email"),
             node(
                 func=translate_to_english,
-                inputs="clean_df",
+                inputs="preprocessed_2022",
                 outputs="translated_2022",
                 name="translate_to_english",
             ),
@@ -55,10 +60,6 @@ def create_pipeline(**kwargs) -> Pipeline:
                 outputs="removed_stop_words_2022",
                 name="stop_word_removal",
             ),
-            node(func=porter_stemmer,
-                 inputs="removed_stop_words_2022",
-                 outputs="primary_2022",
-                 name="porter_stemmer"
-            ),
+
         ]
     )

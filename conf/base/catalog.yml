@@ -8,6 +8,13 @@ tickets_2022:
 contents_2022:
   type: pandas.CSVDataSet
   filepath: data/01_raw/2022/contents.csv
+preprocessed_2022:
+  type: pandas.CSVDataSet
+  filepath: data/02_intermediate/preprocessed_2022.csv
+  save_args:
+    index: False
+    encoding: "utf-8"
+    header: True
 translated_2022:
   type: pandas.CSVDataSet
   filepath: data/02_intermediate/translated_2022.csv

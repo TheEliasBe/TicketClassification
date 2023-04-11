@@ -111,3 +111,11 @@ def stop_word_removal(tickets: pd.DataFrame):
     # join the words back into a sentence
     tickets["Text"] = tickets["Text"].apply(lambda x: ' '.join(x))
     return tickets
+
+
+def anonymize_email(tickets: pd.DataFrame):
+    def remove_email(text):
+        return re.sub("(([\w-]+(?:\.[\w-]+)*)@((?:[\w-]+\.)*\w[\w-]{0,66})\.([a-z]{2,6}(?:\.[a-z]{2})?))", "<EMAIL>", text)
+
+    tickets["Text"] = tickets["Text"].apply(remove_email)
+    return tickets
