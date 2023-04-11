@@ -119,3 +119,25 @@ def anonymize_email(tickets: pd.DataFrame):
 
     tickets["Text"] = tickets["Text"].apply(remove_email)
     return tickets
+
+
+def anonymize_person(tickets: pd.DataFrame):
+    import en_core_web_sm
+    import de_core_news_sm
+    nlp_en = en_core_web_sm.load()
+    nlp_de = de_core_news_sm.load()
+
+    def remove_person(text):
+        if langdetect.detect(text) == "en":
+            nlp = nlp_en
+        else:
+            nlp = nlp_de
+        doc = nlp(text)
+        for ent in doc.ents:
+            if ent.label_ == "PER":
+                text = text.replace(ent.text, "<PERSON>")
+        return text
+
+    tickets["Text"] = tickets["Text"].apply(remove_person)
+    return tickets
+

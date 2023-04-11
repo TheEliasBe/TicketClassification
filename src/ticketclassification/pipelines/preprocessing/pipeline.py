@@ -13,7 +13,8 @@ from .nodes import (
     filter_first_message_per_ticket,
     translate_to_english,
     stop_word_removal,
-    anonymize_email
+    anonymize_email,
+    anonymize_person
 )
 
 
@@ -44,8 +45,14 @@ def create_pipeline(**kwargs) -> Pipeline:
                 outputs="clean_df",
                 name="drop_whitespace_rows",
             ),
+            node(
+                func=anonymize_person,
+                inputs="clean_df",
+                outputs="anon_person_df",
+                name="anon_person",
+            ),
             node(func=anonymize_email,
-                 inputs="clean_df",
+                 inputs="anon_person_df",
                  outputs="preprocessed_2022",
                  name="anon_email"),
             node(
@@ -54,12 +61,5 @@ def create_pipeline(**kwargs) -> Pipeline:
                 outputs="translated_2022",
                 name="translate_to_english",
             ),
-            node(
-                func=stop_word_removal,
-                inputs="translated_2022",
-                outputs="removed_stop_words_2022",
-                name="stop_word_removal",
-            ),
-
         ]
     )
