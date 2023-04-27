@@ -1,6 +1,31 @@
 import pandas as pd
 import tiktoken
 from sklearn.model_selection import train_test_split
+from kedro.config import ConfigLoader
+from kedro.framework.project import settings
+
+conf_path = str(settings.PROJECT_PATH + settings.CONF_SOURCE)
+print(conf_path)
+conf_loader = ConfigLoader(conf_source=conf_path, env="local")
+parameters = conf_loader["parameters"]
+
+def limit_vocabulary(df: pd.DataFrame):
+    """
+    Limit the vocabulary to the 1k most common words
+    :param df:
+    :return:
+    """
+    limit = parameters["VOCAB_THRESHOLD"]
+
+    level_1_words = df[df["Ticket Label"].str.contains("1. Level ")]["Text"].str.split("[^\w+]").explode().value_counts().head(n=1000)
+    level_2_words = df[df["Ticket Label"].str.contains("2. Level ")]["Text"].str.split(
+        "[^\w+]").explode().value_counts().head(n=1000)
+    level_1_words = level_1_words.index.tolist()
+    level_2_words = level_2_words.index.tolist()
+    level_1_words.extend(level_2_words)
+    level_1_words = set(level_1_words)
+    df["Text"] = df["Text"].apply(lambda x: " ".join([word for word in x.split() if word in level_1_words]))
+    return df
 
 
 def map_ticket_label(df: pd.DataFrame):
@@ -15,13 +40,12 @@ def map_ticket_label(df: pd.DataFrame):
 
 
 def limit_token_count(df: pd.DataFrame):
+    tiktoken.get_encoding("r50k_base")
     encoder = tiktoken.encoding_for_model("ada")
     # max token count is 2048
     # minus 9 token for seperator
     # minus 1 token for label
-    df["Text"] = df["Text"].apply(lambda x: encoder.encode(x)[: 2048 - 9 - 1])
-    # decode back to string
-    df["Text"] = df["Text"].apply(lambda x: encoder.decode(x))
+    df["Text"] = df["Text"].apply(lambda x: encoder.decode(encoder.encode(x)[: 2048 - 9 - 1]))
     return df
 
 

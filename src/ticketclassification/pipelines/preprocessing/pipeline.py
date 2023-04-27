@@ -24,7 +24,7 @@ from .training_preparation import (
     limit_token_count,
     convert_to_jsonl,
     split,
-    add_seperator,
+    add_seperator, limit_vocabulary,
 )
 
 
@@ -120,8 +120,14 @@ def create_pipeline(**kwargs) -> Pipeline:
             name="sample_100_per_class",
         ),
         node(
-            func=map_ticket_label,
+            func=limit_vocabulary,
             inputs="sampled_df",
+            outputs="limited_vocab_df",
+            name="limit_vocabulary",
+        ),
+        node(
+            func=map_ticket_label,
+            inputs="limited_vocab_df",
             outputs="mapped_df",
             name="map_ticket_label",
         ),
