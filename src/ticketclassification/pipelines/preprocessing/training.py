@@ -6,20 +6,24 @@ import os
 import openai
 import wandb
 from sklearn.metrics import classification_report, accuracy_score, precision_score, recall_score, f1_score
-from dotenv import load_dotenv
+from kedro.config import ConfigLoader
+from kedro.framework.project import settings
 
-load_dotenv()
+conf_path = str(settings.PROJECT_PATH + settings.CONF_SOURCE)
+print(conf_path)
+conf_loader = ConfigLoader(conf_source=conf_path, env="local")
+parameters = conf_loader["parameters"]
 
 log = logging.getLogger(__name__)
 
 def train(training_data_finished: bool):
     subprocess.run(["openai", "tools", "fine_tunes.prepare_data", "-f", "data/05_model_input/2022.jsonl", "-q"])
-    openai.api_key = os.getenv('OPENAI_API_KEY')
+    openai.api_key = parameters["OPENAI_API_KEY"]
     response = openai.File.create(file=open("data/05_model_input/2022_prepared_train.jsonl"), purpose="fine-tune")
 
     params = {
         "model": "ada",
-        "n_epochs": 16,
+        "n_epochs": 32,
         "batch_size": 0.2,
         "learning_rate_multiplier": 0.1,
         "prompt_loss_weight": 0.05
@@ -82,6 +86,7 @@ def train(training_data_finished: bool):
     wandb.log({"model": params["model"]})
     wandb.log({"model_id": str(fine_tuned_model)})
     wandb.log({"cost": cost})
+    wandb.log({"vocabulary_size": retrieve_response.vocabulary_size})
 
     wandb.finish()
 
