@@ -114,20 +114,8 @@ def create_pipeline(**kwargs) -> Pipeline:
 
     return pipeline([
         node(
-            func=sample_n_per_class,
-            inputs="translated_2022",
-            outputs="sampled_df",
-            name="sample_100_per_class",
-        ),
-        node(
-            func=limit_vocabulary,
-            inputs="sampled_df",
-            outputs="limited_vocab_df",
-            name="limit_vocabulary",
-        ),
-        node(
             func=map_ticket_label,
-            inputs="limited_vocab_df",
+            inputs="translated_2022",
             outputs="mapped_df",
             name="map_ticket_label",
         ),

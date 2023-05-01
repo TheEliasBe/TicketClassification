@@ -22,14 +22,14 @@ def train(training_data_finished: bool):
     response = openai.File.create(file=open("data/05_model_input/2022_prepared_train.jsonl"), purpose="fine-tune")
 
     params = {
-        "model": "ada",
-        "n_epochs": 32,
+        "model": "curie",
+        "n_epochs": 16,
         "batch_size": 0.2,
         "learning_rate_multiplier": 0.1,
         "prompt_loss_weight": 0.05
     }
 
-    wandb.init(project="first_level_classification", config=params)
+    run = wandb.init(project="first_level_classification", config=params)
     wandb.log({"n_epochs": params["n_epochs"]})
     wandb.log({"model": params["model"]})
     wandb.log({"batch_size": params["batch_size"]})
@@ -76,23 +76,33 @@ def train(training_data_finished: bool):
     validation_df['classification'] = validation_df['prompt'].apply(get_classification)
     print(classification_report(validation_df['completion'], validation_df['classification']))
 
+    # save classification report to wandb
+    wandb.log({"classification_report": classification_report(validation_df['completion'], validation_df['classification'])})
+
+    # save predictions
+    validation_df.to_csv(f"data/07_model_output/{run.name}.csv", index=False)
+
+    # log metrics
     wandb.log({"accuracy": accuracy_score(validation_df['completion'], validation_df['classification'])})
     wandb.log(
         {"precision": precision_score(validation_df['completion'], validation_df['classification'], average='macro')})
     wandb.log({"recall": recall_score(validation_df['completion'], validation_df['classification'], average='macro')})
+
+    # log hyperparameters
     wandb.log({"f1": f1_score(validation_df['completion'], validation_df['classification'], average='macro')})
     wandb.log({"training_examples": len(
         pd.read_json(path_or_buf="data/05_model_input/2022_prepared_train.jsonl", lines=True))})
     wandb.log({"model": params["model"]})
     wandb.log({"model_id": str(fine_tuned_model)})
     wandb.log({"cost": cost})
-    wandb.log({"vocabulary_size": retrieve_response.vocabulary_size})
+    wandb.log({"vocabulary_size": parameters["VOCAB_THRESHOLD"]})
 
     wandb.finish()
 
     # delete file used for training and validation
     os.remove("data/05_model_input/2022_prepared_train.jsonl")
     os.remove("data/05_model_input/2022_prepared_valid.jsonl")
+    os.remove("data/05_model_input/2022.jsonl")
 
 
 

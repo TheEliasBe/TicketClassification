@@ -17,9 +17,9 @@ def limit_vocabulary(df: pd.DataFrame):
     """
     limit = parameters["VOCAB_THRESHOLD"]
 
-    level_1_words = df[df["Ticket Label"].str.contains("1. Level ")]["Text"].str.split("[^\w+]").explode().value_counts().head(n=1000)
+    level_1_words = df[df["Ticket Label"].str.contains("1. Level ")]["Text"].str.split("[^\w+]").explode().value_counts().head(n=limit)
     level_2_words = df[df["Ticket Label"].str.contains("2. Level ")]["Text"].str.split(
-        "[^\w+]").explode().value_counts().head(n=1000)
+        "[^\w+]").explode().value_counts().head(n=limit)
     level_1_words = level_1_words.index.tolist()
     level_2_words = level_2_words.index.tolist()
     level_1_words.extend(level_2_words)

@@ -385,5 +385,5 @@ def anonymize_url(tickets: pd.DataFrame):
 
 
 def sample_n_per_class(df: pd.DataFrame):
-    df = df.groupby("Ticket Label").apply(lambda x: x.sample(200, replace=True)).reset_index(drop=True)
+    df = df.groupby("Ticket Label").apply(lambda x: x.sample(300, replace=True)).reset_index(drop=True)
     return df

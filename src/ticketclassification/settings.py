@@ -21,8 +21,9 @@ https://kedro.readthedocs.io/en/stable/kedro_project_setup/settings.html."""
 # from kedro.framework.context import KedroContext
 # CONTEXT_CLASS = KedroContext
 
-# Directory that holds configuration.
-# CONF_SOURCE = "conf"
+# Directory that holds configuration
+CONF_SOURCE = "conf"
+PROJECT_PATH = "/Users/eliasberger/Documents/Uni/Masterthesis/ticketclassification/"
 
 # Class that manages how configuration is loaded.
 # CONFIG_LOADER_CLASS = ConfigLoader
