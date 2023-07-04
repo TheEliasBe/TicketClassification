@@ -1,2 +1,5 @@
 fastapi==0.99.1
 uvicorn==0.22.0
+argostranslate==1.8.0
+tiktoken==0.4.0
+python-multipart
