@@ -46,9 +46,9 @@ def fine_tune_gpt_model(n_epochs, training_samples, learning_rate_multiplier, pr
     fine_tune_job = openai.FineTune.create(
         training_file=response.id,
         model=params["model"],
-        n_epochs=params["n_epochs"],
-        learning_rate_multiplier=params["learning_rate_multiplier"],
-        prompt_loss_weight=params["prompt_loss_weight"]
+        # n_epochs=params["n_epochs"],
+        # learning_rate_multiplier=params["learning_rate_multiplier"],
+        # prompt_loss_weight=params["prompt_loss_weight"]
     )
     print("### CREATED JOB")
     print(fine_tune_job)
@@ -57,16 +57,19 @@ def fine_tune_gpt_model(n_epochs, training_samples, learning_rate_multiplier, pr
     while True:
         events = openai.FineTune.list_events(id=fine_tune_job.id)
         print(f"{datetime.now().strftime('%H:%M:%S')}: Fine-tuning job status: {events['data']}")
-        print(len(events["data"]))
+        print("Events.dat", events["data"])
         status = openai.FineTune.retrieve(fine_tune_job.id).status
         print(f"{datetime.now().strftime('%H:%M:%S')}: Fine-tuning job status: {status}")
 
-        if "succeeded" in events["data"][0]["message"]:
-            try:
-                cost = float(events["data"][1]["message"][-4:])
-            except:
-                cost = 0
-            break
+        if len(events) == 0:
+            print("No events yet", events)
+        else:
+            if "succeeded" in events["data"][-1]["message"]:
+                try:
+                    cost = float(events[1]["message"][-4:])
+                except:
+                    cost = 0
+                break
 
         time.sleep(60)
 
@@ -105,6 +108,7 @@ def fine_tune_gpt_model(n_epochs, training_samples, learning_rate_multiplier, pr
     wandb.log({"vocabulary_size": parameters["VOCAB_THRESHOLD"]})
 
     # save predictions
+    print(f"Saving to {wandb.run.name}.csv")
     validation_df.to_csv(f"data/07_model_output/{wandb.run.name}.csv", index=False)
 
     wandb.finish()
@@ -116,8 +120,8 @@ def fine_tune_gpt_model(n_epochs, training_samples, learning_rate_multiplier, pr
 
 
 fine_tune_gpt_model(
-    n_epochs=hyper_param_grid["n_epochs"][0],
+    n_epochs=hyper_param_grid["n_epochs"][2],
     training_samples=hyper_param_grid["training_samples"][0],
-    learning_rate_multiplier=hyper_param_grid["learning_rate_multiplier"][2],
-    prompt_loss_weight=hyper_param_grid["prompt_loss_weight"][1],
+    learning_rate_multiplier=hyper_param_grid["learning_rate_multiplier"][0],
+    prompt_loss_weight=hyper_param_grid["prompt_loss_weight"][0],
 )
