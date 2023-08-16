@@ -11,6 +11,8 @@ import langdetect
 import nltk
 import numpy as np
 import pandas as pd
+from kedro.config import ConfigLoader
+from kedro.framework.project import settings
 from nltk.corpus import stopwords
 from nltk.stem import Cistem
 from nltk.tokenize import word_tokenize
@@ -19,6 +21,10 @@ stemmer = Cistem()
 nltk.download("punkt")
 
 log = logging.getLogger(__name__)
+conf_path = str(settings.PROJECT_PATH + settings.CONF_SOURCE)
+print(conf_path)
+conf_loader = ConfigLoader(conf_source=conf_path, env="local")
+parameters = conf_loader["parameters"]
 
 
 def filter_first_message_per_ticket(contents: pd.DataFrame) -> pd.DataFrame:
@@ -64,7 +70,7 @@ def reduce_columns(tickets: pd.DataFrame):
     :param tickets:
     :return:
     """
-    tickets = tickets[["Ticket Label", "Abteilung Label", "Produkt Label", "Text"]]
+    tickets = tickets[["Ticket Label", "Abteilung Label", "Produkt Label", "Text", "ID"]]
     return tickets
 
 
@@ -385,5 +391,6 @@ def anonymize_url(tickets: pd.DataFrame):
 
 
 def sample_n_per_class(df: pd.DataFrame):
-    df = df.groupby("Ticket Label").apply(lambda x: x.sample(300, replace=True)).reset_index(drop=True)
+    n = parameters["SAMPLE_SIZE_PER_CLASS"]
+    df = df.groupby(parameters["TARGET_COL"]).apply(lambda x: x.sample(n, replace=True)).reset_index(drop=True)
     return df

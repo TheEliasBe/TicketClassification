@@ -1,5 +1,6 @@
 import pandas as pd
 import tiktoken
+import wandb
 from sklearn.model_selection import train_test_split
 from kedro.config import ConfigLoader
 from kedro.framework.project import settings
@@ -28,14 +29,21 @@ def limit_vocabulary(df: pd.DataFrame):
     return df
 
 
-def map_ticket_label(df: pd.DataFrame):
+def map_label_one_token(df: pd.DataFrame):
     def map_label(label: str) -> str:
         if label == "1. Level ":
             return "first"
         elif label == "2. Level ":
             return "second"
+        elif label == "Applikation ":
+            return "application"
+        elif label == "Basis ":
+            return "base"
+        elif label == "Vertrag ":
+            return "contract"
 
     df["Ticket Label"] = df["Ticket Label"].apply(map_label)
+    df["Abteilung Label"] = df["Abteilung Label"].apply(map_label)
     return df
 
 
@@ -62,8 +70,9 @@ def add_seperator(df: pd.DataFrame):
 def convert_to_jsonl(df: pd.DataFrame):
     lines_df = pd.DataFrame(columns=["prompt", "completion"])
     lines_df["prompt"] = df["Text"]
-    lines_df["completion"] = df["Ticket Label"]
-    lines_df.to_json(f"data/05_model_input/2022.jsonl", lines=True, orient="records")
+    target = "Abteilung Label"
+    lines_df["completion"] = df[target]
+    lines_df.to_json(f"data/05_model_input/2022_all.jsonl", lines=True, orient="records")
     return True
 
 

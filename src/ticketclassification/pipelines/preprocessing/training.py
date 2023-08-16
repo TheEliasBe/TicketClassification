@@ -16,25 +16,25 @@ parameters = conf_loader["parameters"]
 
 log = logging.getLogger(__name__)
 
-def train(training_data_finished: bool):
+def train(input: bool):
     subprocess.run(["openai", "tools", "fine_tunes.prepare_data", "-f", "data/05_model_input/2022.jsonl", "-q"])
     openai.api_key = parameters["OPENAI_API_KEY"]
     response = openai.File.create(file=open("data/05_model_input/2022_prepared_train.jsonl"), purpose="fine-tune")
 
     params = {
-        "model": "curie",
-        "n_epochs": 16,
-        "batch_size": 0.2,
-        "learning_rate_multiplier": 0.1,
-        "prompt_loss_weight": 0.05
+        "model": "ada",
+        "n_epochs": parameters["N_EPOCHS"],
+        "batch_size": int(0.05 * len(pd.read_json(path_or_buf="data/05_model_input/2022_prepared_train.jsonl", lines=True))),
+        # "learning_rate_multiplier": 0.1,
+        # "prompt_loss_weight": 0.05
     }
 
-    run = wandb.init(project="first_level_classification", config=params)
+    wandb.log({"target": parameters["SAMPLE_SIZE_PER_CLASS"]})
     wandb.log({"n_epochs": params["n_epochs"]})
     wandb.log({"model": params["model"]})
     wandb.log({"batch_size": params["batch_size"]})
-    wandb.log({"learning_rate_multiplier": params["learning_rate_multiplier"]})
-    wandb.log({"prompt_loss_weight": params["prompt_loss_weight"]})
+    # wandb.log({"learning_rate_multiplier": params["learning_rate_multiplier"]})
+    # wandb.log({"prompt_loss_weight": params["prompt_loss_weight"]})
 
     fine_tune_job = openai.FineTune.create(
         training_file=response.id,
@@ -47,7 +47,9 @@ def train(training_data_finished: bool):
     while True:
         events = openai.FineTune.list_events(id=fine_tune_job.id)
         log.debug(f"Fine-tuning job status: {events['data'][-1]['message']}")
+        log.debug(f"{time.time()}")
         print(f"Fine-tuning job status: {events['data'][-1]['message']}")
+        log.debug(events["data"][-1]["message"])
 
         if "succeeded" in events["data"][-1]["message"]:
             try:
@@ -74,13 +76,8 @@ def train(training_data_finished: bool):
         return answer['choices'][0]['text']
 
     validation_df['classification'] = validation_df['prompt'].apply(get_classification)
+    print(validation_df.head())
     print(classification_report(validation_df['completion'], validation_df['classification']))
-
-    # save classification report to wandb
-    wandb.log({"classification_report": classification_report(validation_df['completion'], validation_df['classification'])})
-
-    # save predictions
-    validation_df.to_csv(f"data/07_model_output/{run.name}.csv", index=False)
 
     # log metrics
     wandb.log({"accuracy": accuracy_score(validation_df['completion'], validation_df['classification'])})
@@ -97,12 +94,19 @@ def train(training_data_finished: bool):
     wandb.log({"cost": cost})
     wandb.log({"vocabulary_size": parameters["VOCAB_THRESHOLD"]})
 
+    # save predictions
+    validation_df.to_csv(f"data/07_model_output/{wandb.run.name}.csv", index=False)
+
     wandb.finish()
+
+
 
     # delete file used for training and validation
     os.remove("data/05_model_input/2022_prepared_train.jsonl")
     os.remove("data/05_model_input/2022_prepared_valid.jsonl")
     os.remove("data/05_model_input/2022.jsonl")
+
+    return True
 
 
 
