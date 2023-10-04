@@ -80,8 +80,10 @@ def drop_whitespace(tickets: pd.DataFrame):
     :param tickets:
     :return:
     """
+    print("Before", len(tickets))
     df = tickets.replace(r"^\s*$", np.nan, regex=True)
     df.dropna(inplace=True)
+    print("After", len(df))
     return df
 
 

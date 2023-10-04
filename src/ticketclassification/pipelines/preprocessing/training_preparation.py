@@ -41,9 +41,38 @@ def map_label_one_token(df: pd.DataFrame):
             return "base"
         elif label == "Vertrag ":
             return "contract"
+        elif label == "GBI ":
+            return "G"
+        elif label == "Sonstiges ":
+            return "Son"
+        elif label == "ERPsim ":
+            return "ER"
+        elif label == "Entwicklungssystem bzw. Mandant ":
+            return "Ent"
+        elif label == "HANA ":
+            return "H"
+        elif label == "SAP4School ":
+            return "school"
+        elif label == "TS410 ":
+            return "TS"
+        elif label == "UCC Portal ":
+            return "U"
+        elif label == "IDES ":
+            return "ides"
+        elif label == "Celonis ":
+            return "C"
+        elif label == "GBS/Digital Transformation Curriculum ":
+            return "Digital"
+        elif label == "Business By Design ":
+            return "business"
+        else:
+            return "No Match"
+
+
 
     df["Ticket Label"] = df["Ticket Label"].apply(map_label)
     df["Abteilung Label"] = df["Abteilung Label"].apply(map_label)
+    df["Produkt Label"] = df["Produkt Label"].apply(map_label)
     return df
 
 
@@ -70,9 +99,9 @@ def add_seperator(df: pd.DataFrame):
 def convert_to_jsonl(df: pd.DataFrame):
     lines_df = pd.DataFrame(columns=["prompt", "completion"])
     lines_df["prompt"] = df["Text"]
-    target = "Abteilung Label"
+    target = "Produkt Label"
     lines_df["completion"] = df[target]
-    lines_df.to_json(f"data/05_model_input/2022_all.jsonl", lines=True, orient="records")
+    lines_df.to_json(f"data/05_model_input/2022.jsonl", lines=True, orient="records")
     return True
 
 
